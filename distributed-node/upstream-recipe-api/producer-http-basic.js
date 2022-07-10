@@ -1,14 +1,14 @@
 const server = require('fastify')();
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || 'localhost';
 const PORT = process.env.PORT || 4000;
 
 console.log('worker pid=', process.pid);
 
-server.get('recipes/:id', async (req,res) => {
+server.get('/recipes/:id', async (reqest, reply) => {
     console.log('worker request pid=', process.pid);
-    const id = Number(req.params.id);
+    const id = Number(reqest.params.id);
     if (id != 42) {
-        res.statusCode = 404;
+        reply.statusCode = 404;
         return { error: 'not_found' };
     }
     return {
@@ -21,9 +21,14 @@ server.get('recipes/:id', async (req,res) => {
                 { id: 2, name: 'Sauce', quantity: '2 cups' },
             ]
         }
-    }
-})
+    };
+});
 
-server.listen(PORT, HOST, () => {
+server.listen({ port: PORT, host: HOST }, (err, address) => {
+    if (err) {
+        console.error(err);
+        server.log.error(err);
+        process.exit(1);
+    }
     console.log(`Producer running at http://${HOST}:${PORT}`);
 });
